@@ -86,17 +86,19 @@ def run_gui() -> int:
     opts = ttk.LabelFrame(frm, text="Options", padding=8)
     opts.grid(row=8, column=0, columnspan=3, sticky="ew", pady=8)
     toolbar_var = tk.BooleanVar(value=False)
+    addons_var = tk.BooleanVar(value=True)
     kiosk_var = tk.BooleanVar(value=False)
     desk_var = tk.BooleanVar(value=True)
     steam_var = tk.BooleanVar(value=PLATFORM.supports_steam)
     esr_var = tk.BooleanVar(value=False)
     ttk.Checkbutton(opts, text="Show back / forward / reload buttons", variable=toolbar_var).grid(row=0, column=0, sticky="w")
     ttk.Checkbutton(opts, text="Always start full screen (kiosk)", variable=kiosk_var).grid(row=0, column=1, sticky="w")
-    if PLATFORM.supports_desktop_shortcut:
-        ttk.Checkbutton(opts, text="Desktop shortcut (local installs)", variable=desk_var).grid(row=1, column=0, sticky="w")
+    ttk.Checkbutton(opts, text="Add-ons button (configure add-ons)", variable=addons_var).grid(row=1, column=0, sticky="w")
     ttk.Checkbutton(opts, text="Use Firefox ESR", variable=esr_var).grid(row=1, column=1, sticky="w")
+    if PLATFORM.supports_desktop_shortcut:
+        ttk.Checkbutton(opts, text="Desktop shortcut (local installs)", variable=desk_var).grid(row=2, column=0, sticky="w")
     if PLATFORM.supports_steam:
-        ttk.Checkbutton(opts, text="Add to Steam library", variable=steam_var).grid(row=2, column=0, sticky="w")
+        ttk.Checkbutton(opts, text="Add to Steam library", variable=steam_var).grid(row=2, column=1, sticky="w")
 
     def on_mode(*_):
         st = "normal" if mode_var.get() == "portable" else "disabled"
@@ -175,6 +177,7 @@ def run_gui() -> int:
             dest=dest_var.get(),
             channel="esr" if esr_var.get() else "release",
             show_toolbar=toolbar_var.get(),
+            show_addons_button=addons_var.get(),
             kiosk=kiosk_var.get(),
             desktop_shortcut=desk_var.get(),
             add_to_steam=steam_var.get(),

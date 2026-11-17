@@ -54,6 +54,11 @@ A Firefox runtime (official Mozilla build) started with a dedicated profile:
 * `chrome/userChrome.css` hides tabs, the URL bar and toolbars.
 * `extensions/<add-on id>.xpi` holds the signed add-ons, enabled automatically.
 
+* **Add-ons button (new in 1.1.0):** when an app has add-ons, a slim bar at the top holds
+  Firefox's add-ons (puzzle) button. Click it to open an add-on, pin its icon to the bar, or use
+  **Manage extension** for its settings. Turn the bar off with the "Add-ons button" option
+  (`--no-addons-button`).
+
 Each app has its own profile, so logins, cookies, storage and add-on settings are separate.
 
 ## Building from source
