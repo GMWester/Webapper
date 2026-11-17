@@ -1,0 +1,60 @@
+name: Build WebApper (Windows)
+
+on:
+  push:
+    branches: [windows]
+    tags: ["windows-v*"]
+  pull_request:
+    branches: [windows]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            arch: x64
+          - runner: windows-11-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: End-to-end smoke test (real Firefox + real add-on)
+        shell: pwsh
+        run: |
+          python main.py create https://example.com --name Example `
+            --ext https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/ `
+            --mode portable --dest "$env:RUNNER_TEMP\out"
+          $app = "$env:RUNNER_TEMP\out\Example"
+          Get-ChildItem $app
+          if (-not (Test-Path "$app\Example.exe")) { throw "launcher exe missing" }
+          Get-ChildItem "$app\profile\extensions"
+          python main.py create https://example.com --name "Example Local" --mode local --no-desktop-shortcut
+          python main.py list
+          Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\WebApper"
+      - name: Build executable
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --name webapper-windows-${{ matrix.arch }} --collect-submodules webapper main.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: webapper-windows-${{ matrix.arch }}
+          path: dist/*.exe
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/webapper-windows-${{ matrix.arch }}.exe
