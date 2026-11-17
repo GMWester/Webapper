@@ -52,7 +52,7 @@ val templateApkFile = project(":template").layout.buildDirectory
 
 android {
     namespace = "com.webapper.installer"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.webapper.installer"
@@ -126,6 +126,6 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
-    implementation("com.android.tools.build:apksig:8.11.1")
+    implementation("com.android.tools.build:apksig:9.1.1")
     testImplementation("junit:junit:4.13.2")
 }

@@ -22,7 +22,7 @@ jobs:
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.14.3"
+          gradle-version: "9.3.1"
       - name: Unit tests (generate + sign an app from the real GeckoView template)
         run: gradle --no-daemon :app:testX86_64DebugUnitTest
       - name: Inspect generated APK
