@@ -1,0 +1,47 @@
+name: Build WebApper (iOS / iPadOS)
+
+on:
+  push:
+    branches: [ios]
+    tags: ["ios-v*"]
+  pull_request:
+    branches: [ios]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+      - name: Build for the simulator
+        run: |
+          xcodebuild -project WebApper.xcodeproj -scheme WebApper -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -30
+          test "${PIPESTATUS[0]}" = 0
+      - name: Build unsigned IPA (re-sign with your Apple ID / AltStore / Sideloadly)
+        run: |
+          xcodebuild -project WebApper.xcodeproj -scheme WebApper -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build | tail -30
+          test "${PIPESTATUS[0]}" = 0
+          mkdir -p Payload dist
+          cp -R build/Build/Products/Release-iphoneos/WebApper.app Payload/
+          zip -qr dist/WebApper-ios-unsigned.ipa Payload
+          ls -la dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: webapper-ios
+          path: dist/*.ipa
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/WebApper-ios-unsigned.ipa
