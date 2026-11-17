@@ -64,6 +64,9 @@ jobs:
           "$APP/run.sh" &
           sleep 30
           import -window root "$RUNNER_TEMP/window.png"
+          echo "TOPSTRIP-BEGIN"
+          convert "$RUNNER_TEMP/window.png" -crop 1280x120+0+0 -colors 64 png:- | base64 -w 120
+          echo "TOPSTRIP-END"
           pkill -f "$APP/runtime/firefox" || true
           sleep 3
           python tests/check_addon_active.py "$APP/profile"
