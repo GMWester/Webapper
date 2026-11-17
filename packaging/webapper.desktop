@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=WebApper
+Comment=Create Firefox-powered apps from websites
+Exec=webapper
+Icon=applications-internet
+Terminal=false
+Categories=Network;Utility;
