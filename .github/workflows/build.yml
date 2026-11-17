@@ -1,0 +1,62 @@
+name: Build WebApper (macOS)
+
+on:
+  push:
+    branches: [macos]
+    tags: ["macos-v*"]
+  pull_request:
+    branches: [macos]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest
+            arch: arm64
+          - runner: macos-13
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: End-to-end smoke test (real Firefox + real add-on)
+        run: |
+          python main.py create https://example.com --name Example \
+            --ext https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/ \
+            --mode portable --dest "$RUNNER_TEMP/out"
+          APP="$RUNNER_TEMP/out/Example.app"
+          ls -la "$APP/Contents" "$APP/Contents/MacOS" "$APP/Contents/Resources/webapp/profile/extensions"
+          plutil -lint "$APP/Contents/Info.plist"
+          "$APP/Contents/Resources/runtime/Firefox.app/Contents/MacOS/firefox" --headless \
+            --profile "$APP/Contents/Resources/webapp/profile" --screenshot "$RUNNER_TEMP/shot.png" https://example.com || true
+          python main.py create https://example.com --name "Example Local" --mode local
+          ls ~/Applications/WebApper
+      - name: Build app
+        run: |
+          pyinstaller --noconfirm --windowed --name WebApper --osx-bundle-identifier io.webapper.installer \
+            --collect-submodules webapper main.py
+          codesign --force --deep --sign - dist/WebApper.app
+          hdiutil create -volname WebApper -srcfolder dist/WebApper.app -ov -format UDZO dist/WebApper-macos-${{ matrix.arch }}.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: webapper-macos-${{ matrix.arch }}
+          path: dist/*.dmg
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/WebApper-macos-${{ matrix.arch }}.dmg
