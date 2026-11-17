@@ -14,7 +14,7 @@ permissions:
 
 # Release version: a manual run publishes the release <branch>-v$VERSION.
 env:
-  VERSION: "1.1.0"
+  VERSION: "1.1.1"
 
 jobs:
   build:
