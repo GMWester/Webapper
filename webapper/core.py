@@ -529,10 +529,11 @@ _CHROME_TOOLBAR = """\
 # Slim bar with only the add-ons: the puzzle button opens every add-on's menu,
 # its settings ("Manage extension") and pin/unpin; pinned add-on icons sit next to it.
 _CHROME_ADDONS_ONLY = """\
-#nav-bar-customization-target > :not(.webextension-browser-action),
+#nav-bar-customization-target > :not(.webextension-browser-action, #unified-extensions-button),
 #PanelUI-button, #nav-bar-overflow-button, #fxa-toolbar-menu-button {
   display: none !important;
 }
+#unified-extensions-button { display: flex !important; }
 #nav-bar-customization-target { flex: 1 !important; justify-content: flex-end !important; }
 #nav-bar { min-height: 0 !important; }
 """
@@ -565,6 +566,8 @@ def build_profile(
     addons_bar = show_addons_button and bool(extensions)
     if show_toolbar or addons_bar:
         prefs["browser.uidensity"] = 1  # compact bar
+        # Firefox hides the add-ons (puzzle) button by default; always show it.
+        prefs["extensions.unifiedExtensions.button.always_visible"] = True
     if extra_prefs:
         prefs.update(extra_prefs)
     with open(os.path.join(profile_dir, "user.js"), "w", encoding="utf-8") as f:

@@ -14,7 +14,7 @@ permissions:
 
 # Release version: a manual run publishes the release <branch>-v$VERSION.
 env:
-  VERSION: "1.1.0"
+  VERSION: "1.1.1"
 
 jobs:
   build:
@@ -54,6 +54,25 @@ jobs:
           python main.py create https://example.com --name "Example Local" --mode local --no-desktop-shortcut --steam
           python main.py list
           ls "$XDG_DATA_HOME/applications"
+      - name: Real window test (add-ons button visible, add-on active)
+        run: |
+          sudo apt-get install -y xvfb imagemagick
+          Xvfb :99 -screen 0 1280x800x24 &
+          sleep 2
+          export DISPLAY=:99 HOME="$RUNNER_TEMP/home"
+          APP="$RUNNER_TEMP/out/Example"
+          "$APP/run.sh" &
+          sleep 30
+          import -window root "$RUNNER_TEMP/window.png"
+          pkill -f "$APP/runtime/firefox" || true
+          sleep 3
+          python tests/check_addon_active.py "$APP/profile"
+          cat "$APP/profile/chrome/userChrome.css"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: window-screenshot-${{ matrix.arch }}
+          path: ${{ runner.temp }}/window.png
       - name: Build binary
         run: |
           pyinstaller --noconfirm --onefile --windowed --name webapper-steamos-${{ matrix.arch }} \

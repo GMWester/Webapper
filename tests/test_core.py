@@ -94,7 +94,11 @@ class CoreTests(unittest.TestCase):
 
     def test_user_chrome_variants(self):
         self.assertIn("#urlbar-container", core.user_chrome_css(True, True))
-        self.assertIn("justify-content: flex-end", core.user_chrome_css(False, True))
+        addons_css = core.user_chrome_css(False, True)
+        self.assertIn("justify-content: flex-end", addons_css)
+        # the puzzle button lives inside #nav-bar-customization-target: it must not be hidden
+        self.assertIn(":not(.webextension-browser-action, #unified-extensions-button)", addons_css)
+        self.assertIn("#unified-extensions-button { display: flex !important; }", addons_css)
         self.assertIn("#nav-bar { visibility: collapse", core.user_chrome_css(False, False))
 
     def test_letter_icon(self):
