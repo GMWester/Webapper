@@ -82,6 +82,7 @@ class CoreTests(unittest.TestCase):
                 ujs = f.read()
             self.assertIn('user_pref("browser.startup.homepage", "https://example.com");', ujs)
             self.assertIn('user_pref("extensions.autoDisableScopes", 0);', ujs)
+            self.assertIn('user_pref("termsofuse.bypassNotification", true);', ujs)
             self.assertTrue(os.path.exists(os.path.join(prof, "extensions", "test@example.com.xpi")))
             with open(os.path.join(prof, "chrome", "userChrome.css")) as f:
                 css = f.read()

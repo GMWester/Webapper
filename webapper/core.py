@@ -490,6 +490,11 @@ BASE_PREFS: dict[str, object] = {
     "datareporting.policy.dataSubmissionEnabled": False,
     "datareporting.healthreport.uploadEnabled": False,
     "toolkit.telemetry.reportingpolicy.firstRun": False,
+    # Skip the first-run "Welcome to Firefox" Terms of Use modal, which would
+    # otherwise cover the app (same effect as Mozilla's SkipTermsOfUse policy).
+    "termsofuse.bypassNotification": True,
+    "browser.preonboarding.enabled": False,
+    "datareporting.policy.dataSubmissionPolicyBypassNotification": True,
     "toolkit.telemetry.enabled": False,
     "app.normandy.enabled": False,
     "app.shield.optoutstudies.enabled": False,
