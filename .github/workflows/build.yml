@@ -1,4 +1,5 @@
 name: Build WebApper (SteamOS / Steam Frame)
+run-name: "WebApper SteamOS / Steam Frame · ${{ github.event_name == 'workflow_dispatch' && 'release' || github.event_name }} · ${{ github.ref_name }}"
 
 on:
   push:
