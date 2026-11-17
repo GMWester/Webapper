@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/headline"
+            android:textAppearance="@android:style/TextAppearance.Material.Headline" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/subtitle"
+            android:textAppearance="@android:style/TextAppearance.Material.Body1" />
+
+        <TextView style="@style/Label" android:text="@string/url_label" />
+        <EditText
+            android:id="@+id/url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/url_hint"
+            android:importantForAutofill="no"
+            android:inputType="textUri"
+            android:imeOptions="actionNext"
+            android:singleLine="true" />
+
+        <TextView style="@style/Label" android:text="@string/name_label" />
+        <EditText
+            android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/name_hint"
+            android:importantForAutofill="no"
+            android:inputType="textCapWords"
+            android:singleLine="true" />
+
+        <TextView style="@style/Label" android:text="@string/ext_label" />
+        <EditText
+            android:id="@+id/extensions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top"
+            android:hint="@string/ext_hint"
+            android:importantForAutofill="no"
+            android:inputType="textUri|textMultiLine"
+            android:minLines="3" />
+
+        <TextView style="@style/Label" android:text="@string/mode_label" />
+        <RadioGroup
+            android:id="@+id/mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <RadioButton
+                android:id="@+id/mode_local"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/mode_local" />
+            <RadioButton
+                android:id="@+id/mode_portable"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mode_portable" />
+        </RadioGroup>
+
+        <CheckBox
+            android:id="@+id/desktop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/desktop_mode" />
+        <CheckBox
+            android:id="@+id/screen_on"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/keep_screen_on" />
+
+        <CheckBox
+            android:id="@+id/full_space"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/full_space" />
+
+        <Button
+            android:id="@+id/create"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/create" />
+
+        <ProgressBar
+            android:id="@+id/progress"
+            style="@android:style/Widget.Material.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textIsSelectable="true" />
+
+        <TextView
+            style="@style/Label"
+            android:layout_marginTop="20dp"
+            android:text="@string/your_apps" />
+        <LinearLayout
+            android:id="@+id/apps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </LinearLayout>
+</ScrollView>
