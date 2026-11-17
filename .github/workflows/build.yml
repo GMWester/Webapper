@@ -1,0 +1,66 @@
+name: Build WebApper (Linux)
+
+on:
+  push:
+    branches: [linux]
+    tags: ["linux-v*"]
+  pull_request:
+    branches: [linux]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            arch: x86_64
+          - runner: ubuntu-22.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+          python -c "import tkinter; print('tk', tkinter.TkVersion)"
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: End-to-end smoke test (real Firefox + real add-on)
+        run: |
+          sudo apt-get update && sudo apt-get install -y libgtk-3-0 libdbus-glib-1-2 libasound2 libx11-xcb1 || true
+          export HOME="$RUNNER_TEMP/home" XDG_DATA_HOME="$RUNNER_TEMP/home/.local/share"
+          mkdir -p "$HOME"
+          python main.py create https://example.com --name "Example" \
+            --ext https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/ \
+            --mode portable --dest "$RUNNER_TEMP/out"
+          APP="$RUNNER_TEMP/out/Example"
+          ls -la "$APP" "$APP/profile/extensions"
+          "$APP/runtime/firefox/firefox" --headless --profile "$APP/profile" --screenshot "$RUNNER_TEMP/shot.png" https://example.com
+          test -s "$RUNNER_TEMP/shot.png"
+          python main.py create https://example.com --name "Example Local" --mode local --no-desktop-shortcut
+          python main.py list
+          ls "$XDG_DATA_HOME/applications"
+      - name: Build binary
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --name webapper-linux-${{ matrix.arch }} \
+            --collect-submodules webapper main.py
+          cp packaging/webapper.desktop dist/
+          ./dist/webapper-linux-${{ matrix.arch }} --help
+      - uses: actions/upload-artifact@v4
+        with:
+          name: webapper-linux-${{ matrix.arch }}
+          path: dist/*
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/webapper-linux-${{ matrix.arch }}
