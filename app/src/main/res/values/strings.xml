@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WebApper</string>
+    <string name="headline">WebApper</string>
+    <string name="subtitle">Turn any website into its own Android TV app (with a remote-control pointer), powered by Firefox (GeckoView) with Firefox add-ons.</string>
+    <string name="url_label">Website address</string>
+    <string name="url_hint">https://example.com</string>
+    <string name="name_label">App name</string>
+    <string name="name_hint">Leave empty to use the page title</string>
+    <string name="ext_label">Firefox add-ons (one link per line)</string>
+    <string name="ext_hint">https://addons.mozilla.org/firefox/addon/ublock-origin/</string>
+    <string name="mode_label">Install type</string>
+    <string name="mode_local">Install on this device (local)</string>
+    <string name="mode_portable">Portable: save the APK file (works on other devices)</string>
+    <string name="desktop_mode">Request desktop site</string>
+    <string name="keep_screen_on">Keep the screen on</string>
+    <string name="create">Create</string>
+    <string name="your_apps">Apps created with WebApper</string>
+</resources>
