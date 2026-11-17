@@ -78,11 +78,24 @@ class CoreTests(unittest.TestCase):
             make_xpi(x)
             prof = os.path.join(d, "profile")
             core.build_profile(prof, "https://example.com", [core.Extension("s", "test@example.com", "T", "", x)])
-            ujs = open(os.path.join(prof, "user.js")).read()
+            with open(os.path.join(prof, "user.js")) as f:
+                ujs = f.read()
             self.assertIn('user_pref("browser.startup.homepage", "https://example.com");', ujs)
             self.assertIn('user_pref("extensions.autoDisableScopes", 0);', ujs)
             self.assertTrue(os.path.exists(os.path.join(prof, "extensions", "test@example.com.xpi")))
-            self.assertIn("#nav-bar", open(os.path.join(prof, "chrome", "userChrome.css")).read())
+            with open(os.path.join(prof, "chrome", "userChrome.css")) as f:
+                css = f.read()
+            # add-ons installed -> slim bar keeping the add-ons (puzzle) button
+            self.assertIn("webextension-browser-action", css)
+            self.assertNotIn("#nav-bar { visibility: collapse", css)
+            core.build_profile(prof, "https://example.com", [])
+            with open(os.path.join(prof, "chrome", "userChrome.css")) as f:
+                self.assertIn("#nav-bar { visibility: collapse", f.read())
+
+    def test_user_chrome_variants(self):
+        self.assertIn("#urlbar-container", core.user_chrome_css(True, True))
+        self.assertIn("justify-content: flex-end", core.user_chrome_css(False, True))
+        self.assertIn("#nav-bar { visibility: collapse", core.user_chrome_css(False, False))
 
     def test_letter_icon(self):
         img = core.letter_icon("Example", 64)

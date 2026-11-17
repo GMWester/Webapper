@@ -28,6 +28,8 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--dest", default="", help="parent folder for portable apps")
     c.add_argument("--channel", choices=("release", "esr"), default="release")
     c.add_argument("--toolbar", action="store_true", help="show back/forward/reload buttons")
+    c.add_argument("--no-addons-button", action="store_true",
+                   help="hide the add-ons (puzzle) button used to configure add-ons")
     c.add_argument("--kiosk", action="store_true", help="always start full screen (kiosk)")
     c.add_argument("--no-desktop-shortcut", action="store_true")
     if PLATFORM.supports_steam:
@@ -54,6 +56,7 @@ def main(argv: list[str]) -> int:
                 dest=args.dest,
                 channel=args.channel,
                 show_toolbar=args.toolbar,
+                show_addons_button=not args.no_addons_button,
                 kiosk=args.kiosk,
                 desktop_shortcut=not args.no_desktop_shortcut,
                 add_to_steam=getattr(args, "steam", False),
