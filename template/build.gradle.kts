@@ -6,7 +6,7 @@ android {
     // Java classes live in com.webapper.template; the applicationId is a placeholder that the
     // installer rewrites (inside the binary AndroidManifest.xml) for every generated app.
     namespace = "com.webapper.template"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.webapper.gen.t0000000000000000"

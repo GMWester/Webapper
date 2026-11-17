@@ -59,7 +59,7 @@ Each generated app:
 
 ## Building
 
-Requirements: JDK 17, Android SDK (platform 36) and Gradle 8.14. The project has no wrapper jar.
+Requirements: JDK 17, Android SDK (platform 37) and Gradle 9.3.1. The project has no wrapper jar.
 
 ```bash
 gradle :app:testX86_64DebugUnitTest
