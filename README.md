@@ -38,7 +38,7 @@ Firefox for Android uses. On the device, `Generator` and `apk/*` do the followin
 Each generated app:
 
 * opens the site full-window in GeckoView, with its own private Gecko profile,
-* installs its add-ons on first start, with a 🧩 button for add-on popups,
+* installs its add-ons on first start. An add-ons manager (the 🧩 button; the MENU key on TV) lists every add-on and lets you open its popup, open its **Settings** page, or turn it on or off,
 * gives native dialogs for alert/confirm/prompt, `<select>`, file uploads and date/colour inputs,
 * asks before granting camera, microphone, location or notification access,
 * saves downloads to the Downloads folder,

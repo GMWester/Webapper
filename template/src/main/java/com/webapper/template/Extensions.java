@@ -46,17 +46,9 @@ final class Extensions {
 
         return controller.list().then(installed -> {
             Set<String> have = new HashSet<>();
-            List<WebExtension> disabled = new ArrayList<>();
+            // Add-ons the user turned off in the add-ons menu stay off.
             if (installed != null) {
-                for (WebExtension e : installed) {
-                    have.add(e.id);
-                    if (!e.metaData.enabled) disabled.add(e);
-                }
-            }
-            for (WebExtension e : disabled) {
-                for (WebAppConfig.Ext x : cfg.extensions) {
-                    if (x.id.equals(e.id)) controller.enable(e, WebExtensionController.EnableSource.USER);
-                }
+                for (WebExtension e : installed) have.add(e.id);
             }
             List<WebAppConfig.Ext> todo = new ArrayList<>();
             for (WebAppConfig.Ext x : cfg.extensions) {

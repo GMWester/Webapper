@@ -216,7 +216,7 @@ public class MainActivity extends Activity {
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     : 0);
         }
-        extButton.setVisibility(!full && !actions.isEmpty() ? View.VISIBLE : View.GONE);
+        extButton.setVisibility(!full && !config.extensions.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     private static String fileName(WebResponse r) {
@@ -375,7 +375,7 @@ public class MainActivity extends Activity {
         lp.setMargins(m, m, m, m);
         b.setLayoutParams(lp);
         b.setFocusable(true);
-        b.setVisibility(View.GONE);
+        b.setVisibility(config.extensions.isEmpty() ? View.GONE : View.VISIBLE);
         b.setOnClickListener(v -> showActions());
         return b;
     }
@@ -386,7 +386,6 @@ public class MainActivity extends Activity {
             public void onBrowserAction(WebExtension ext, GeckoSession s, WebExtension.Action action) {
                 actions.put(ext.id, action);
                 actionNames.put(ext.id, ext.metaData.name != null ? ext.metaData.name : ext.id);
-                extButton.setVisibility(fullScreen ? View.GONE : View.VISIBLE);
             }
 
             @Override
@@ -405,35 +404,87 @@ public class MainActivity extends Activity {
         });
     }
 
+    /** Add-ons manager: open an add-on's popup, its settings page, or turn it on/off. */
     protected void showActions() {
-        if (actions.isEmpty()) return;
-        final String[] ids = actions.keySet().toArray(new String[0]);
-        if (ids.length == 1) {
-            actions.get(ids[0]).click();
-            return;
+        runtime.getWebExtensionController().list().accept(list -> {
+            if (list == null || list.isEmpty()) {
+                Toast.makeText(this, "No add-ons installed", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String[] names = new String[list.size()];
+            for (int i = 0; i < names.length; i++) {
+                WebExtension e = list.get(i);
+                String n = e.metaData.name != null ? e.metaData.name : e.id;
+                names[i] = e.metaData.enabled ? n : n + "  (off)";
+            }
+            new AlertDialog.Builder(this).setTitle("Add-ons")
+                    .setItems(names, (d, which) -> showAddon(list.get(which)))
+                    .show();
+        });
+    }
+
+    private void showAddon(WebExtension e) {
+        final java.util.List<String> labels = new java.util.ArrayList<>();
+        final java.util.List<Runnable> actionsList = new java.util.ArrayList<>();
+        final boolean enabled = e.metaData.enabled;
+        final WebExtension.Action action = actions.get(e.id);
+        if (enabled && action != null) {
+            labels.add("Open");
+            actionsList.add(action::click);
         }
-        String[] names = new String[ids.length];
-        for (int i = 0; i < ids.length; i++) names[i] = actionNames.get(ids[i]);
-        new AlertDialog.Builder(this).setTitle("Add-ons")
-                .setItems(names, (d, which) -> actions.get(ids[which]).click())
+        if (enabled && e.metaData.optionsPageUrl != null && !e.metaData.optionsPageUrl.isEmpty()) {
+            labels.add("Settings");
+            actionsList.add(() -> openPanel(e.metaData.name + " settings").loadUri(e.metaData.optionsPageUrl));
+        }
+        labels.add(enabled ? "Turn off" : "Turn on");
+        actionsList.add(() -> setAddonEnabled(e, !enabled));
+        StringBuilder info = new StringBuilder("Version ").append(e.metaData.version);
+        if (e.metaData.description != null) info.append("\n\n").append(e.metaData.description);
+        TextView header = new TextView(this);
+        int pad = (int) (20 * getResources().getDisplayMetrics().density);
+        header.setPadding(pad, pad / 2, pad, 0);
+        header.setText(info);
+        new AlertDialog.Builder(this)
+                .setTitle(e.metaData.name != null ? e.metaData.name : e.id)
+                .setView(header)
+                .setItems(labels.toArray(new String[0]), (d, which) -> actionsList.get(which).run())
+                .setNegativeButton("Close", null)
                 .show();
     }
 
-    private GeckoResult<GeckoSession> showPopup(WebExtension ext) {
-        final GeckoSession popup = new GeckoSession();
-        popup.open(runtime);
+    private void setAddonEnabled(WebExtension e, boolean enable) {
+        org.mozilla.geckoview.WebExtensionController c = runtime.getWebExtensionController();
+        GeckoResult<WebExtension> r = enable
+                ? c.enable(e, org.mozilla.geckoview.WebExtensionController.EnableSource.USER)
+                : c.disable(e, org.mozilla.geckoview.WebExtensionController.EnableSource.USER);
+        r.accept(updated -> {
+            if (!enable) actions.remove(e.id);
+            Toast.makeText(this, (enable ? "Turned on " : "Turned off ") + e.metaData.name, Toast.LENGTH_SHORT).show();
+            if (enable) hookExtensionActions();
+            session.reload();
+        }, err -> Toast.makeText(this, "Could not change " + e.metaData.name, Toast.LENGTH_SHORT).show());
+    }
+
+    /** A dialog with its own GeckoSession, used for add-on popups and settings pages. */
+    private GeckoSession openPanel(String title) {
+        final GeckoSession panel = new GeckoSession();
+        panel.open(runtime);
         GeckoView view = new GeckoView(this);
-        view.setSession(popup);
+        view.setSession(panel);
         int h = (int) (getResources().getDisplayMetrics().heightPixels * 0.7);
-        view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h));
         FrameLayout box = new FrameLayout(this);
         box.addView(view, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h));
         new AlertDialog.Builder(this)
-                .setTitle(ext.metaData.name)
+                .setTitle(title)
                 .setView(box)
-                .setOnDismissListener(d -> popup.close())
+                .setPositiveButton("Close", null)
+                .setOnDismissListener(d -> panel.close())
                 .show();
-        return GeckoResult.fromValue(popup);
+        return panel;
+    }
+
+    private GeckoResult<GeckoSession> showPopup(WebExtension ext) {
+        return GeckoResult.fromValue(openPanel(ext.metaData.name));
     }
 
     // ------------------------------------------------------------------ lifecycle
