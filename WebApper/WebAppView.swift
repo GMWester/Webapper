@@ -4,28 +4,73 @@ import WebKit
 /// Full-screen web app: WKWebView with its own isolated website data store (cookies, storage,
 /// logins are separate for every web app) and the add-ons' content scripts.
 struct WebAppScreen: View {
-    let app: WebApp
+    @EnvironmentObject var store: AppStore
+    @State var app: WebApp
     let onClose: () -> Void
-    @State private var showControls = false
+    @State private var showAddons = false
+    @State private var reloadToken = UUID()
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
             WebAppView(app: app)
+                .id(reloadToken)
                 .ignoresSafeArea(app.fullScreen ? .all : [])
-            Button {
-                onClose()
-            } label: {
-                Image(systemName: "square.grid.2x2")
-                    .font(.system(size: 14, weight: .semibold))
-                    .padding(8)
-                    .background(.ultraThinMaterial, in: Circle())
+            HStack(spacing: 8) {
+                if !app.extensions.isEmpty {
+                    overlayButton("puzzlepiece.extension", label: "Add-ons") { showAddons = true }
+                }
+                overlayButton("square.grid.2x2", label: "Back to WebApper", action: onClose)
             }
             .padding(.top, 4)
             .padding(.trailing, 8)
-            .opacity(0.6)
-            .accessibilityLabel("Back to WebApper")
         }
         .statusBarHidden(app.fullScreen)
+        .sheet(isPresented: $showAddons, onDismiss: { reloadToken = UUID() }) {
+            AddonsView(app: $app)
+                .onChange(of: app) { _, newValue in store.add(newValue) }
+        }
+    }
+
+    private func overlayButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 14, weight: .semibold))
+                .padding(8)
+                .background(.ultraThinMaterial, in: Circle())
+        }
+        .opacity(0.6)
+        .accessibilityLabel(label)
+    }
+}
+
+/// Turn this app's add-ons on or off (the page reloads when the sheet closes).
+struct AddonsView: View {
+    @Binding var app: WebApp
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    ForEach(app.extensions) { ext in
+                        Toggle(isOn: Binding(
+                            get: { !app.disabledExtensions.contains(ext.id) },
+                            set: { on in
+                                if on { app.disabledExtensions.remove(ext.id) } else { app.disabledExtensions.insert(ext.id) }
+                            })) {
+                            VStack(alignment: .leading) {
+                                Text(ext.name)
+                                Text(ext.source).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                            }
+                        }
+                    }
+                } footer: {
+                    Text("On iOS add-ons run their page scripts and styles. Changes apply when you close this screen.")
+                }
+            }
+            .navigationTitle("Add-ons")
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }
     }
 }
 

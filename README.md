@@ -29,6 +29,7 @@ Long-press an app in the list to add it to the Home Screen again, export it or d
   Files › WebApper › Downloads.
 * Native alert/confirm/prompt dialogs, and camera/microphone prompts.
 * An optional desktop-site mode.
+* An add-ons button (puzzle icon, top right) to turn each add-on on or off for that app.
 * **Firefox add-ons, partly.** WebApper downloads and unpacks each add-on, reads its
   `manifest.json` and injects its **content scripts and CSS** with the declared match patterns,
   `run_at` timing and `all_frames` setting. It provides a `browser`/`chrome` shim with

@@ -11,6 +11,7 @@ struct WebApperApp: App {
                 .onOpenURL { store.handle(url: $0) }
                 .fullScreenCover(item: $store.openApp) { app in
                     WebAppScreen(app: app) { store.openApp = nil }
+                        .environmentObject(store)
                 }
         }
     }

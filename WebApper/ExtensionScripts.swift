@@ -18,7 +18,7 @@ enum ExtensionScripts {
     static func load(for app: WebApp) -> Report {
         var report = Report()
         let root = Paths.extensions(for: app.id)
-        for ext in app.extensions {
+        for ext in app.extensions where !app.disabledExtensions.contains(ext.id) {
             let dir = root.appendingPathComponent(ext.folder, isDirectory: true)
             guard let data = try? Data(contentsOf: dir.appendingPathComponent("manifest.json")),
                   let manifest = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {

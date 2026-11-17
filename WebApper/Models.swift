@@ -20,6 +20,29 @@ struct WebApp: Codable, Hashable, Identifiable {
     var fullScreen: Bool = true
     var iconPNG: Data?
     var created: Date = Date()
+    /// Add-on ids the user turned off for this app.
+    var disabledExtensions: Set<String> = []
+
+    init(name: String, url: URL, desktopMode: Bool = false, fullScreen: Bool = true) {
+        self.name = name
+        self.url = url
+        self.desktopMode = desktopMode
+        self.fullScreen = fullScreen
+    }
+
+    // Tolerant decoding so apps saved by older versions keep loading.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        url = try c.decode(URL.self, forKey: .url)
+        extensions = try c.decodeIfPresent([InstalledExtension].self, forKey: .extensions) ?? []
+        desktopMode = try c.decodeIfPresent(Bool.self, forKey: .desktopMode) ?? false
+        fullScreen = try c.decodeIfPresent(Bool.self, forKey: .fullScreen) ?? true
+        iconPNG = try c.decodeIfPresent(Data.self, forKey: .iconPNG)
+        created = try c.decodeIfPresent(Date.self, forKey: .created) ?? Date()
+        disabledExtensions = try c.decodeIfPresent(Set<String>.self, forKey: .disabledExtensions) ?? []
+    }
 
     var openURL: URL { URL(string: "webapper://open/\(id.uuidString)")! }
 
